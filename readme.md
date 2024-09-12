@@ -1,5 +1,4 @@
-````markdown
-## SeedSpotter
+# SeedSpotter
 
 SeedSpotter is a Laravel package that helps you detect discrepancies between your database seeders and the actual database content. It's an essential tool for maintaining data integrity in your Laravel applications.
 
@@ -18,7 +17,7 @@ You can install the package via composer:
 ```bash
 composer require abdulmannans/seed-spotter
 ```
-````
+
 
 The package will automatically register its service provider.
 
