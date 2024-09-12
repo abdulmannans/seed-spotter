@@ -1,19 +1,23 @@
 {
     "name": "abdulmannans/seed-spotter",
     "description": "A package to spot the discrepancies between database and seeders",
-    "version": "1.0.1",
     "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Abdul Mannan Siddiquei",
+            "email": "samannnan1999@gmail.com"
+        }
+    ],
     "require": {
-        "php": "^7.4|^8.0",
-        "illuminate/support": "^8.0"
+        "php": "^7.4|^8.0|^8.1|^8.2",
+        "illuminate/support": "^8.0|^9.0|^10.0|^11.0"
     },
     "require-dev": {
+        "orchestra/testbench": "^6.0|^7.0|^8.0|^9.0",
         "pestphp/pest": "^1.0|^2.0",
-        "pestphp/pest-plugin-laravel": "^1.0|^2.0",
-        "orchestra/testbench-core": "^6.0|^7.0|^8.0",
-        "phpunit/phpunit": "^9.0|^10.0"
+        "pestphp/pest-plugin-laravel": "^1.0|^2.0"
     },
-    "license": "MIT",
     "autoload": {
         "psr-4": {
             "Abdulmannans\\SeedSpotter\\": "src/"
@@ -24,14 +28,6 @@
             "Abdulmannans\\SeedSpotter\\Tests\\": "tests/"
         }
     },
-    "authors": [
-        {
-            "name": "Abdul Mannan Siddiquei",
-            "email": "samannnan1999@gmail.com"
-        }
-    ],
-    "minimum-stability": "stable",
-    "prefer-stable": true,
     "extra": {
         "laravel": {
             "providers": [
@@ -40,8 +36,11 @@
         }
     },
     "config": {
+        "sort-packages": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true
         }
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
