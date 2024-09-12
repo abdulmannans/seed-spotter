@@ -1,6 +1,6 @@
 {
     "name": "abdulmannans/seed-spotter",
-    "description": "A package to spot discrepancies between database and seeders",
+    "description": "A package to spot the discrepancies between database and seeders",
     "version": "1.0.0",
     "type": "library",
     "require": {
