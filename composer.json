@@ -1,6 +1,7 @@
 {
     "name": "abdulmannans/seed-spotter",
     "description": "A package to spot discrepancies between database and seeders",
+    "version": "1.0.0",
     "type": "library",
     "require": {
         "php": "^7.4|^8.0",
