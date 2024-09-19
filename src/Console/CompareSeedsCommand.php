@@ -7,7 +7,7 @@ use Abdulmannans\SeedSpotter\SeedSpotter;
 
 class CompareSeedsCommand extends Command
 {
-    protected $signature = 'seed-spotter:compare {seeder} {--table= : The table to compare}';
+    protected $signature = 'seed-spotter:compare {seeder} {--table= : The table to compare} {--ignore= : Comma-separated list of columns to ignore}';
 
     protected $description = 'Compare seeder data with database data';
 
@@ -15,9 +15,10 @@ class CompareSeedsCommand extends Command
     {
         $seederClass = $this->argument('seeder');
         $table = $this->option('table') ?? config('seed-spotter.table');
+        $ignoreColumns = $this->getIgnoreColumns();
 
         $seeder = new $seederClass;
-        $spotter = new SeedSpotter($seeder, $table);
+        $spotter = new SeedSpotter($seeder, $table, $ignoreColumns);
 
         $result = $spotter->compare();
 
@@ -37,5 +38,18 @@ class CompareSeedsCommand extends Command
                 json_encode($discrepancy['data'] ?? $discrepancy, JSON_PRETTY_PRINT)
             ];
         })->toArray();
+    }
+
+    protected function getIgnoreColumns()
+    {
+        $ignoreOption = $this->option('ignore');
+        $configIgnore = config('seed-spotter.ignore_columns', []);
+
+        if ($ignoreOption) {
+            $commandIgnore = explode(',', $ignoreOption);
+            return array_merge($configIgnore, $commandIgnore);
+        }
+
+        return $configIgnore;
     }
 }

@@ -11,7 +11,8 @@ class SeedSpotterServiceProvider extends ServiceProvider
         $this->app->bind('seed-spotter', function ($app) {
             return new SeedSpotter(
                 $app->make('seeder'),
-                config('seed-spotter.table', 'users')
+                config('seed-spotter.table', 'users'),
+                config('seed-spotter.ignore_columns', [])
             );
         });
 

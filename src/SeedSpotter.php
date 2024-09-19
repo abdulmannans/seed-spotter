@@ -9,11 +9,13 @@ class SeedSpotter
 {
     protected $seeder;
     protected $table;
+    protected $ignoreColumns;
 
-    public function __construct(Seeder $seeder, string $table)
+    public function __construct(Seeder $seeder, string $table, array $ignoreColumns = [])
     {
         $this->seeder = $seeder;
         $this->table = $table;
+        $this->ignoreColumns = $ignoreColumns;
     }
 
     public function compare()
@@ -97,7 +99,17 @@ class SeedSpotter
     protected function findMatchingRow($row, $dataSet)
     {
         foreach ($dataSet as $dataRow) {
-            if ($dataRow->id === $row->id) {
+            $match = true;
+            foreach ($row as $key => $value) {
+                if (in_array($key, $this->ignoreColumns)) {
+                    continue;
+                }
+                if (!property_exists($dataRow, $key) || $dataRow->$key !== $value) {
+                    $match = false;
+                    break;
+                }
+            }
+            if ($match) {
                 return $dataRow;
             }
         }
@@ -106,9 +118,11 @@ class SeedSpotter
 
     protected function rowsDiffer($row1, $row2)
     {
-
         foreach ($row1 as $key => $value) {
-            if ($row2->$key !== $value && $key !== 'updated_at' && $key !== 'created_at') {
+            if (in_array($key, $this->ignoreColumns)) {
+                continue;
+            }
+            if (!property_exists($row2, $key) || $row2->$key !== $value) {
                 return true;
             }
         }
