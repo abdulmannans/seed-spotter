@@ -31,21 +31,35 @@ class SeedSpotter
 
     protected function getSeederData()
     {
-        $originalData = DB::table($this->table)->get()->toArray();
-
-        DB::beginTransaction();
+        // Create a temporary table to store the original data
+        $tempTable = $this->table . '_temp_' . time();
+        DB::statement("CREATE TABLE {$tempTable} LIKE {$this->table}");
+        DB::statement("INSERT INTO {$tempTable} SELECT * FROM {$this->table}");
 
         try {
-            DB::table($this->table)->delete();
+            // Run the seeder
             $this->seeder->run();
-            $seederData = DB::table($this->table)->get()->toArray();
-            DB::rollBack();
+
+            // Get the seeded data
+            $seededData = DB::table($this->table)->get();
+
+            // Restore the original data
+            DB::statement("TRUNCATE TABLE {$this->table}");
+            DB::statement("INSERT INTO {$this->table} SELECT * FROM {$tempTable}");
+
+            // Drop the temporary table
+            DB::statement("DROP TABLE {$tempTable}");
+
+            return $seededData->toArray();
         } catch (\Exception $e) {
-            DB::rollBack();
+            // If an error occurs, make sure we restore the original data and drop the temp table
+            if (DB::getSchemaBuilder()->hasTable($tempTable)) {
+                DB::statement("TRUNCATE TABLE {$this->table}");
+                DB::statement("INSERT INTO {$this->table} SELECT * FROM {$tempTable}");
+                DB::statement("DROP TABLE {$tempTable}");
+            }
             throw $e;
         }
-
-        return $seederData;
     }
 
     protected function getDatabaseData()
@@ -92,8 +106,9 @@ class SeedSpotter
 
     protected function rowsDiffer($row1, $row2)
     {
+
         foreach ($row1 as $key => $value) {
-            if ($row2->$key !== $value) {
+            if ($row2->$key !== $value && $key !== 'updated_at' && $key !== 'created_at') {
                 return true;
             }
         }
