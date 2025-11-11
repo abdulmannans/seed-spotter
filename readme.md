@@ -18,7 +18,6 @@ You can install the package via composer:
 composer require abdulmannans/seed-spotter
 ```
 
-
 The package will automatically register its service provider.
 
 ## Usage

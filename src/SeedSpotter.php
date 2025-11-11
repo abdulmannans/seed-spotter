@@ -2,13 +2,15 @@
 
 namespace Abdulmannans\SeedSpotter;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class SeedSpotter
 {
     protected $seeder;
+
     protected $table;
+
     protected $ignoreColumns;
 
     public function __construct(Seeder $seeder, string $table, array $ignoreColumns = [])
@@ -26,19 +28,33 @@ class SeedSpotter
         $discrepancies = $this->findDiscrepancies($seederData, $databaseData);
 
         return [
-            'has_discrepancies' => !empty($discrepancies),
-            'discrepancies' => $discrepancies
+            'has_discrepancies' => ! empty($discrepancies),
+            'discrepancies' => $discrepancies,
         ];
     }
 
     protected function getSeederData()
     {
         // Create a temporary table to store the original data
-        $tempTable = $this->table . '_temp_' . time();
-        DB::statement("CREATE TABLE {$tempTable} LIKE {$this->table}");
-        DB::statement("INSERT INTO {$tempTable} SELECT * FROM {$this->table}");
+        $tempTable = $this->table.'_temp_'.time();
+        $driver = DB::getDriverName();
+
+        if ($driver === 'sqlite') {
+            DB::statement("CREATE TABLE {$tempTable} AS SELECT * FROM {$this->table} WHERE 1=0");
+            DB::statement("INSERT INTO {$tempTable} SELECT * FROM {$this->table}");
+        } else {
+            DB::statement("CREATE TABLE {$tempTable} LIKE {$this->table}");
+            DB::statement("INSERT INTO {$tempTable} SELECT * FROM {$this->table}");
+        }
 
         try {
+            // Clear the table before running the seeder
+            if ($driver === 'sqlite') {
+                DB::statement("DELETE FROM {$this->table}");
+            } else {
+                DB::statement("TRUNCATE TABLE {$this->table}");
+            }
+
             // Run the seeder
             $this->seeder->run();
 
@@ -46,7 +62,11 @@ class SeedSpotter
             $seededData = DB::table($this->table)->get();
 
             // Restore the original data
-            DB::statement("TRUNCATE TABLE {$this->table}");
+            if ($driver === 'sqlite') {
+                DB::statement("DELETE FROM {$this->table}");
+            } else {
+                DB::statement("TRUNCATE TABLE {$this->table}");
+            }
             DB::statement("INSERT INTO {$this->table} SELECT * FROM {$tempTable}");
 
             // Drop the temporary table
@@ -56,7 +76,11 @@ class SeedSpotter
         } catch (\Exception $e) {
             // If an error occurs, make sure we restore the original data and drop the temp table
             if (DB::getSchemaBuilder()->hasTable($tempTable)) {
-                DB::statement("TRUNCATE TABLE {$this->table}");
+                if ($driver === 'sqlite') {
+                    DB::statement("DELETE FROM {$this->table}");
+                } else {
+                    DB::statement("TRUNCATE TABLE {$this->table}");
+                }
                 DB::statement("INSERT INTO {$this->table} SELECT * FROM {$tempTable}");
                 DB::statement("DROP TABLE {$tempTable}");
             }
@@ -76,19 +100,19 @@ class SeedSpotter
         foreach ($seederData as $seederRow) {
             $matchingDbRow = $this->findMatchingRow($seederRow, $databaseData);
 
-            if (!$matchingDbRow) {
+            if (! $matchingDbRow) {
                 $discrepancies[] = ['type' => 'missing', 'data' => $seederRow];
             } elseif ($this->rowsDiffer($seederRow, $matchingDbRow)) {
                 $discrepancies[] = [
                     'type' => 'different',
                     'seeder_data' => $seederRow,
-                    'db_data' => $matchingDbRow
+                    'db_data' => $matchingDbRow,
                 ];
             }
         }
 
         foreach ($databaseData as $dbRow) {
-            if (!$this->findMatchingRow($dbRow, $seederData)) {
+            if (! $this->findMatchingRow($dbRow, $seederData)) {
                 $discrepancies[] = ['type' => 'extra', 'data' => $dbRow];
             }
         }
@@ -104,7 +128,7 @@ class SeedSpotter
                 if (in_array($key, $this->ignoreColumns)) {
                     continue;
                 }
-                if (!property_exists($dataRow, $key) || $dataRow->$key !== $value) {
+                if (! property_exists($dataRow, $key) || $value !== $dataRow->$key) {
                     $match = false;
                     break;
                 }
@@ -113,6 +137,7 @@ class SeedSpotter
                 return $dataRow;
             }
         }
+
         return null;
     }
 
@@ -122,10 +147,11 @@ class SeedSpotter
             if (in_array($key, $this->ignoreColumns)) {
                 continue;
             }
-            if (!property_exists($row2, $key) || $row2->$key !== $value) {
+            if (! property_exists($row2, $key) || $value !== $row2->$key) {
                 return true;
             }
         }
+
         return false;
     }
 }
