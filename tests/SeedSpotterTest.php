@@ -3,6 +3,7 @@
 use Abdulmannans\SeedSpotter\SeedSpotter;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Test;
 
 class SeedSpotterTest extends \Orchestra\Testbench\TestCase
 {
@@ -11,7 +12,7 @@ class SeedSpotterTest extends \Orchestra\Testbench\TestCase
         return [\Abdulmannans\SeedSpotter\SeedSpotterServiceProvider::class];
     }
 
-    /** @test */
+    #[Test]
     public function it_can_detect_missing_rows()
     {
         // Create a test table
@@ -21,7 +22,8 @@ class SeedSpotterTest extends \Orchestra\Testbench\TestCase
         DB::table('test_table')->insert(['id' => 1, 'name' => 'Test']);
 
         // Create a seeder that doesn't seed anything
-        $seeder = new class extends Seeder {
+        $seeder = new class extends Seeder
+        {
             public function run() {}
         };
 
@@ -33,14 +35,15 @@ class SeedSpotterTest extends \Orchestra\Testbench\TestCase
         $this->assertEquals('extra', $result['discrepancies'][0]['type']);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_detect_extra_rows()
     {
         // Create a test table
         $this->createTestTable();
 
         // Create a seeder that seeds one row
-        $seeder = new class extends Seeder {
+        $seeder = new class extends Seeder
+        {
             public function run()
             {
                 DB::table('test_table')->insert(['id' => 1, 'name' => 'Test']);

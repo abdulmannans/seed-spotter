@@ -2,8 +2,8 @@
 
 namespace Abdulmannans\SeedSpotter\Console;
 
-use Illuminate\Console\Command;
 use Abdulmannans\SeedSpotter\SeedSpotter;
+use Illuminate\Console\Command;
 
 class CompareSeedsCommand extends Command
 {
@@ -23,10 +23,10 @@ class CompareSeedsCommand extends Command
         $result = $spotter->compare();
 
         if ($result['has_discrepancies']) {
-            $this->error("Discrepancies found!");
+            $this->error('Discrepancies found!');
             $this->table(['Type', 'Details'], $this->formatDiscrepancies($result['discrepancies']));
         } else {
-            $this->info("No discrepancies found. Seeder and database are in sync.");
+            $this->info('No discrepancies found. Seeder and database are in sync.');
         }
     }
 
@@ -35,7 +35,7 @@ class CompareSeedsCommand extends Command
         return collect($discrepancies)->map(function ($discrepancy) {
             return [
                 $discrepancy['type'],
-                json_encode($discrepancy['data'] ?? $discrepancy, JSON_PRETTY_PRINT)
+                json_encode($discrepancy['data'] ?? $discrepancy, JSON_PRETTY_PRINT),
             ];
         })->toArray();
     }
@@ -47,6 +47,7 @@ class CompareSeedsCommand extends Command
 
         if ($ignoreOption) {
             $commandIgnore = explode(',', $ignoreOption);
+
             return array_merge($configIgnore, $commandIgnore);
         }
 
